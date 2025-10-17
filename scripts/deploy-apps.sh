@@ -2,9 +2,10 @@
 
 set -e
 
-echo "📦 Deploying applications to ArgoCD..."
+echo "📦 Deploying Helm-based applications to ArgoCD..."
 
-kubectl apply -f argocd-apps/nginx-app.yaml
+kubectl apply -f argocd-apps/service1.yaml
+kubectl apply -f argocd-apps/service2.yaml
 
 echo "✅ Applications deployed!"
 echo ""

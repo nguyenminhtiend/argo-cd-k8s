@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "microservice-common.fullname" . }}-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "microservice-common.name" . }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "microservice-common.name" . }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+

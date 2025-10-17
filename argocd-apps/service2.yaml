@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nginx-app
+  name: service2
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -11,11 +11,15 @@ spec:
   source:
     repoURL: https://github.com/nguyenminhtiend/argo-cd-k8s.git
     targetRevision: main
-    path: apps/nginx
+    path: charts/microservice-common
+    helm:
+      releaseName: service2
+      valueFiles:
+        - ../../apps/service2/values.yaml
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: nginx-app
+    namespace: service2
 
   syncPolicy:
     automated:

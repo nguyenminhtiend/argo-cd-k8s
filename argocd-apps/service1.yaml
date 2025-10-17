@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: service1
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/nguyenminhtiend/argo-cd-k8s.git
+    targetRevision: main
+    path: charts/microservice-common
+    helm:
+      releaseName: service1
+      valueFiles:
+        - ../../apps/service1/values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: service1
+
+  syncPolicy:
+    automated:
+      prune: true # Auto-delete resources when removed from git
+      selfHeal: true # Auto-revert manual changes
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true # Auto-create namespace if missing
+      - PruneLast=true # Delete resources last during sync
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

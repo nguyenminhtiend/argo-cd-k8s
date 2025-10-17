@@ -1,0 +1,5 @@
+replicaCount: 2
+
+namespace: service2
+
+nameOverride: service2
