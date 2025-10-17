@@ -35,6 +35,7 @@ minikube service argocd-server -n argocd
 ```
 
 Or manually via ArgoCD UI:
+
 - Click "+ New App"
 - Application Name: `nginx-app`
 - Project: `default`
@@ -63,6 +64,7 @@ minikube service nginx-service -n nginx-app
 ## Test Auto-Sync + Self-Heal
 
 ### Test 1: Auto-Sync (Git → K8s)
+
 ```bash
 # Edit replicas in apps/nginx/deployment.yaml (change 3 to 5)
 # Commit and push
@@ -75,6 +77,7 @@ kubectl get pods -n nginx-app -w
 ```
 
 ### Test 2: Self-Heal (K8s → Git)
+
 ```bash
 # Manually change k8s (will be reverted)
 kubectl scale deployment nginx-deployment -n nginx-app --replicas=10
@@ -99,4 +102,3 @@ kubectl patch app nginx-app -n argocd --type merge -p '{"metadata":{"annotations
 ## Done! 🎉
 
 Your ArgoCD is now managing nginx with auto-sync and self-heal enabled.
-
