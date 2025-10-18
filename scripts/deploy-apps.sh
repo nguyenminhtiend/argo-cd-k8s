@@ -2,12 +2,12 @@
 
 set -e
 
-echo "📦 Deploying Helm-based applications to ArgoCD..."
+echo "📦 Deploying root apps to ArgoCD (App of Apps pattern)..."
 
-kubectl apply -f argocd-apps/service1.yaml
-kubectl apply -f argocd-apps/service2.yaml
+kubectl apply -f apps-root.yaml
+# kubectl apply -f infra-root.yaml  # Uncomment when ready
 
-echo "✅ Applications deployed!"
+echo "✅ Root apps deployed! They will automatically deploy all services."
 echo ""
 echo "📊 Check status:"
 echo "kubectl get application -n argocd"
