@@ -94,15 +94,17 @@ kubectl get ingressroute -n traefik
 
 ## Access Services via Traefik
 
+```bash
+# Port-forward Traefik service (in separate terminal)
+kubectl port-forward -n traefik svc/traefik 8080:80
+```
+
 ### Option 1: Via Path-based routing
 
 ```bash
-# Get Traefik LoadBalancer IP/Port
-minikube service traefik -n traefik
-
 # Access services:
-# http://localhost/service1
-# http://localhost/service2
+curl http://localhost:8080/service1
+curl http://localhost:8080/service2
 ```
 
 ### Option 2: Via Host-based routing
@@ -112,8 +114,8 @@ minikube service traefik -n traefik
 echo "127.0.0.1 service1.local service2.local" | sudo tee -a /etc/hosts
 
 # Access services:
-# http://service1.local
-# http://service2.local
+curl http://service1.local:8080
+curl http://service2.local:8080
 ```
 
 ## Test Auto-Sync + Self-Heal

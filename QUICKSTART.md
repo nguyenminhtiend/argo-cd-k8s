@@ -63,12 +63,12 @@ kubectl get all -n service2
 kubectl get all -n traefik
 kubectl get ingressroute -n traefik
 
-# Access services via Traefik
-minikube service traefik -n traefik
+# Port-forward Traefik (in separate terminal)
+kubectl port-forward -n traefik svc/traefik 8080:80
 
 # Test services:
-# http://localhost/service1
-# http://localhost/service2
+curl http://localhost:8080/service1
+curl http://localhost:8080/service2
 ```
 
 ## Test Auto-Sync + Self-Heal
@@ -120,7 +120,7 @@ Your ArgoCD is now managing:
 - **Apps Root**: service1 and service2 microservices
 - **Infra Root**: Traefik ingress controller with routing to both services
 
-Access your services via Traefik at:
+Access your services via Traefik:
 
-- `http://localhost/service1`
-- `http://localhost/service2`
+1. Port-forward: `kubectl port-forward -n traefik svc/traefik 8080:80`
+2. Access at: `http://localhost:8080/service1` and `http://localhost:8080/service2`
