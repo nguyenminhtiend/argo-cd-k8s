@@ -30,6 +30,10 @@ spec:
             port: 443
             exposedPort: 443
 
+        providers:
+          kubernetesCRD:
+            allowCrossNamespace: true
+
         ingressRoute:
           dashboard:
             enabled: false
