@@ -27,4 +27,16 @@ spec:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
+          {{- if .Values.customContent }}
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html
+              readOnly: true
+          {{- end }}
+      {{- if .Values.customContent }}
+      volumes:
+        - name: content
+          configMap:
+            name: {{ include "microservice-common.fullname" . }}-content
+      {{- end }}
 

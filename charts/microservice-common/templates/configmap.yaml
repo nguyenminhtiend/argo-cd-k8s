@@ -1,0 +1,13 @@
+{{- if .Values.customContent }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "microservice-common.fullname" . }}-content
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "microservice-common.name" . }}
+data:
+  index.html: |
+{{ .Values.customContent | indent 4 }}
+{{- end }}
+
