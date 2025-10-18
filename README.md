@@ -49,15 +49,33 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 ## Deploy Applications
 
-### Option 1: Via kubectl
+### Deploy Apps Root (Application of Applications)
+
 ```bash
-kubectl apply -f argocd-apps/nginx-app.yaml
+# Deploy application root - manages all app deployments
+./scripts/deploy-apps.sh
+
+# This will create service1 and service2
 ```
 
-### Option 2: Via ArgoCD UI
-1. Click "New App"
-2. Fill in details from `argocd-apps/nginx-app.yaml`
-3. Click "Create"
+### Deploy Infrastructure Root (Traefik Ingress)
+
+```bash
+# Deploy infrastructure root - manages Traefik and routing
+./scripts/deploy-infra.sh
+
+# This will install Traefik and configure routing to services
+```
+
+### Manual Deployment (Alternative)
+
+```bash
+# Apps
+kubectl apply -f apps-root.yaml
+
+# Infrastructure
+kubectl apply -f infra-root.yaml
+```
 
 ## Verify Deployment
 
@@ -65,16 +83,43 @@ kubectl apply -f argocd-apps/nginx-app.yaml
 # Check ArgoCD app status
 kubectl get application -n argocd
 
-# Check nginx deployment
-kubectl get all -n nginx-app
+# Check services
+kubectl get all -n service1
+kubectl get all -n service2
 
-# Access nginx
-minikube service nginx-service -n nginx-app
+# Check Traefik
+kubectl get all -n traefik
+kubectl get ingressroute -n traefik
+```
+
+## Access Services via Traefik
+
+### Option 1: Via Path-based routing
+
+```bash
+# Get Traefik LoadBalancer IP/Port
+minikube service traefik -n traefik
+
+# Access services:
+# http://localhost/service1
+# http://localhost/service2
+```
+
+### Option 2: Via Host-based routing
+
+```bash
+# Add to /etc/hosts
+echo "127.0.0.1 service1.local service2.local" | sudo tee -a /etc/hosts
+
+# Access services:
+# http://service1.local
+# http://service2.local
 ```
 
 ## Test Auto-Sync + Self-Heal
 
 1. **Auto-sync test:** Change `replicas` in `apps/nginx/deployment.yaml`, commit & push
+
    - ArgoCD will automatically deploy the change
 
 2. **Self-heal test:** Manually scale the deployment
@@ -100,10 +145,25 @@ minikube stop
 ## Repository Structure
 
 ```
-├── apps/
-│   ├── nginx/              # Simple nginx microservice
-│   └── nodejs/             # Node.js microservice (coming soon)
-├── argocd-apps/            # ArgoCD Application manifests
+├── apps/                    # Application values
+│   ├── service1/
+│   └── service2/
+├── argocd-apps/            # ArgoCD app manifests (apps)
+│   ├── service1.yaml
+│   └── service2.yaml
+├── argocd-infra/           # ArgoCD app manifests (infrastructure)
+│   ├── traefik.yaml
+│   └── traefik-routes.yaml
+├── charts/                 # Helm charts
+│   └── microservice-common/
+├── infra/                  # Infrastructure configs
+│   └── traefik-routes/     # Traefik IngressRoutes
+├── scripts/                # Deployment scripts
+│   ├── start-minikube.sh
+│   ├── install-argocd.sh
+│   ├── deploy-apps.sh
+│   └── deploy-infra.sh
+├── apps-root.yaml          # App of Apps for services
+├── infra-root.yaml         # App of Apps for infrastructure
 └── README.md
 ```
-

@@ -28,37 +28,47 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 minikube service argocd-server -n argocd
 ```
 
-## Step 5: Deploy nginx App
+## Step 5: Deploy Applications
+
+### Deploy Apps Root (service1 & service2)
 
 ```bash
 ./scripts/deploy-apps.sh
 ```
 
-Or manually via ArgoCD UI:
+### Deploy Infrastructure (Traefik)
 
-- Click "+ New App"
-- Application Name: `nginx-app`
-- Project: `default`
-- Sync Policy: `Automatic` (check "Self Heal" and "Prune")
-- Repository URL: `https://github.com/nguyenminhtiend/argo-cd-k8s.git`
-- Revision: `main`
-- Path: `apps/nginx`
-- Cluster: `https://kubernetes.default.svc`
-- Namespace: `nginx-app`
-- Click "Create"
+```bash
+./scripts/deploy-infra.sh
+```
+
+Or manually:
+
+```bash
+kubectl apply -f apps-root.yaml
+kubectl apply -f infra-root.yaml
+```
 
 ## Step 6: Verify
 
 ```bash
-# Check ArgoCD app
+# Check ArgoCD apps
 kubectl get application -n argocd
 
-# Check nginx pods
-kubectl get all -n nginx-app
+# Check services
+kubectl get all -n service1
+kubectl get all -n service2
 
-# Access nginx
-minikube service nginx-service -n nginx-app
-# Or: curl http://$(minikube ip):30080
+# Check Traefik
+kubectl get all -n traefik
+kubectl get ingressroute -n traefik
+
+# Access services via Traefik
+minikube service traefik -n traefik
+
+# Test services:
+# http://localhost/service1
+# http://localhost/service2
 ```
 
 ## Test Auto-Sync + Self-Heal
@@ -66,24 +76,24 @@ minikube service nginx-service -n nginx-app
 ### Test 1: Auto-Sync (Git → K8s)
 
 ```bash
-# Edit replicas in apps/nginx/deployment.yaml (change 3 to 5)
+# Edit replicas in apps/service1/values.yaml (change 1 to 3)
 # Commit and push
-git add apps/nginx/deployment.yaml
-git commit -m "Scale nginx to 5 replicas"
+git add apps/service1/values.yaml
+git commit -m "Scale service1 to 3 replicas"
 git push
 
 # Watch ArgoCD sync automatically
-kubectl get pods -n nginx-app -w
+kubectl get pods -n service1 -w
 ```
 
 ### Test 2: Self-Heal (K8s → Git)
 
 ```bash
 # Manually change k8s (will be reverted)
-kubectl scale deployment nginx-deployment -n nginx-app --replicas=10
+kubectl scale deployment service1 -n service1 --replicas=10
 
 # Watch ArgoCD revert it back to git state
-kubectl get pods -n nginx-app -w
+kubectl get pods -n service1 -w
 ```
 
 ## Troubleshooting
@@ -93,12 +103,24 @@ kubectl get pods -n nginx-app -w
 kubectl logs -n argocd -l app.kubernetes.io/name=argocd-server
 
 # Check application details
-kubectl describe application nginx-app -n argocd
+kubectl describe application service1 -n argocd
+kubectl describe application traefik -n argocd
+
+# Check Traefik logs
+kubectl logs -n traefik -l app.kubernetes.io/name=traefik
 
 # Force sync
-kubectl patch app nginx-app -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"normal"}}}'
+kubectl patch app service1 -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"normal"}}}'
 ```
 
 ## Done! 🎉
 
-Your ArgoCD is now managing nginx with auto-sync and self-heal enabled.
+Your ArgoCD is now managing:
+
+- **Apps Root**: service1 and service2 microservices
+- **Infra Root**: Traefik ingress controller with routing to both services
+
+Access your services via Traefik at:
+
+- `http://localhost/service1`
+- `http://localhost/service2`

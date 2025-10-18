@@ -1,0 +1,27 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: service1-route
+  namespace: traefik
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`service1.local`) || PathPrefix(`/service1`)
+      kind: Rule
+      services:
+        - name: service1-service
+          namespace: service1
+          port: 80
+      middlewares:
+        - name: service1-stripprefix
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: service1-stripprefix
+  namespace: traefik
+spec:
+  stripPrefix:
+    prefixes:
+      - /service1
