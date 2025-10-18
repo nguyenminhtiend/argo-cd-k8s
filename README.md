@@ -47,6 +47,26 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 
 **Login:** `admin` / (password from above)
 
+## Architecture
+
+This setup uses GitOps principles with ArgoCD's **App of Apps** pattern:
+
+- **Apps Root** (`apps-root.yaml`): Manages all microservices (service1, service2)
+
+  - Each service includes: deployment, service, configmap, and ingress routes
+  - Ingress routes are part of each service (owned by service, deployed to traefik namespace)
+
+- **Infra Root** (`infra-root.yaml`): Manages infrastructure components
+  - Traefik ingress controller with ClusterIP service
+  - Helm values externalized to `infra/traefik/values.yaml`
+
+### Key Design Decisions
+
+1. **Ingress routes belong to services**: Each service defines its own Traefik IngressRoute
+2. **Cross-namespace routing**: Traefik (in `traefik` namespace) routes to services (in their own namespaces)
+3. **Helm values externalized**: Traefik values in separate file for easier maintenance
+4. **Custom content per service**: ConfigMaps with custom HTML for easy differentiation
+
 ## Deploy Applications
 
 ### Deploy Apps Root (Application of Applications)
@@ -149,22 +169,31 @@ minikube stop
 ```
 ├── apps/                    # Application values
 │   ├── service1/
+│   │   └── values.yaml    # Service config + ingress routes
 │   └── service2/
+│       └── values.yaml    # Service config + ingress routes
 ├── argocd-apps/            # ArgoCD app manifests (apps)
 │   ├── service1.yaml
 │   └── service2.yaml
 ├── argocd-infra/           # ArgoCD app manifests (infrastructure)
-│   ├── traefik.yaml
-│   └── traefik-routes.yaml
+│   └── traefik.yaml
 ├── charts/                 # Helm charts
 │   └── microservice-common/
+│       ├── templates/
+│       │   ├── deployment.yaml
+│       │   ├── service.yaml
+│       │   ├── configmap.yaml
+│       │   └── ingressroute.yaml  # Traefik IngressRoute template
+│       └── values.yaml
 ├── infra/                  # Infrastructure configs
-│   └── traefik-routes/     # Traefik IngressRoutes
+│   └── traefik/
+│       └── values.yaml    # Traefik Helm values
 ├── scripts/                # Deployment scripts
 │   ├── start-minikube.sh
 │   ├── install-argocd.sh
 │   ├── deploy-apps.sh
-│   └── deploy-infra.sh
+│   ├── deploy-infra.sh
+│   └── port-forward-traefik.sh
 ├── apps-root.yaml          # App of Apps for services
 ├── infra-root.yaml         # App of Apps for infrastructure
 └── README.md

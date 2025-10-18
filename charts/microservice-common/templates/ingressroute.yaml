@@ -1,0 +1,38 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ include "microservice-common.fullname" . }}-route
+  namespace: {{ .Values.ingress.namespace | default "traefik" }}
+  labels:
+    app: {{ include "microservice-common.name" . }}
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: {{ .Values.ingress.match }}
+      kind: Rule
+      services:
+        - name: {{ include "microservice-common.fullname" . }}-service
+          namespace: {{ .Values.namespace }}
+          port: {{ .Values.service.port }}
+      {{- if .Values.ingress.stripPrefix }}
+      middlewares:
+        - name: {{ include "microservice-common.fullname" . }}-stripprefix
+      {{- end }}
+{{- if .Values.ingress.stripPrefix }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "microservice-common.fullname" . }}-stripprefix
+  namespace: {{ .Values.ingress.namespace | default "traefik" }}
+  labels:
+    app: {{ include "microservice-common.name" . }}
+spec:
+  stripPrefix:
+    prefixes:
+      - {{ .Values.ingress.stripPrefix }}
+{{- end }}
+{{- end }}
+

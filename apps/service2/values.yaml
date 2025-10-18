@@ -4,6 +4,12 @@ namespace: service2
 
 nameOverride: service2
 
+ingress:
+  enabled: true
+  namespace: traefik
+  match: Host(`service2.local`) || PathPrefix(`/service2`)
+  stripPrefix: /service2
+
 customContent: |
   <!DOCTYPE html>
   <html>

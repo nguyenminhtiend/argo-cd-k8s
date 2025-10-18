@@ -15,6 +15,12 @@ service:
   port: 80
   targetPort: 80
 
+ingress:
+  enabled: false
+  namespace: traefik
+  match: ''
+  stripPrefix: ''
+
 resources:
   requests:
     memory: '64Mi'
